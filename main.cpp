@@ -35,6 +35,8 @@ int main() {
     std::cout << "Fetching temp_key: " << db.get("temp_key") << "\n";
     db.del("temp_key");
     std::cout << "Fetching after del: " << db.get("temp_key") << "\n";
-    
+
+    std::cout << "Checking if user:2 exists: " << (db.exists("user:2") ? "Yes" : "No") << "\n";
+    db.printStats();
     return 0;
 }
