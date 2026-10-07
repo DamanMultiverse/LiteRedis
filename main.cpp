@@ -29,5 +29,12 @@ int main() {
     }
 
     std::cout << "\nAll 10 concurrent threads finished with ZERO race conditions!\n";
+
+    std::cout << "\n--- Testing LRU get() and del() Operations ---\n";
+    db.put("temp_key", "Temporary_Data");
+    std::cout << "Fetching temp_key: " << db.get("temp_key") << "\n";
+    db.del("temp_key");
+    std::cout << "Fetching after del: " << db.get("temp_key") << "\n";
+    
     return 0;
 }
