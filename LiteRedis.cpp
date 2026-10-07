@@ -27,6 +27,30 @@ void LiteRedis::put(const std::string& key, const std::string& value) {
     items.push_front({key, value});
     cache[key] = items.begin();
     std::cout << "[WRITER] Inserted: " << key << " => " << value << "\n";
+
+    std::string LiteRedis::get(const std::string& key) {
+    // Write lock chahiye kyunki get() karne par list ka order (LRU position) change hota hai!
+    std::unique_lock<std::shared_mutex> lock(rw_lock);
+    auto it = cache.find(key);
+    if (it == cache.end()) {
+        return "Not Found";
+    }
+    // Node ko utha kar list ke front mein le aao (Most Recently Used)
+    items.splice(items.begin(), items, it->second);
+    return it->second->second;
+}
+
+bool LiteRedis::del(const std::string& key) {
+    std::unique_lock<std::shared_mutex> lock(rw_lock);
+    auto it = cache.find(key);
+    if (it == cache.end()) {
+        return false;
+    }
+    items.erase(it->second);
+    cache.erase(it);
+    std::cout << "[DEL] Removed key: " << key << "\n";
+    return true;
+}
 }
 
 int LiteRedis::size() const {

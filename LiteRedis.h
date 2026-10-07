@@ -16,9 +16,12 @@ private:
     mutable std::shared_mutex rw_lock;
 
 public:
+    public:
     explicit LiteRedis(int cap);
     std::string peek(const std::string& key);
+    std::string get(const std::string& key);
     void put(const std::string& key, const std::string& value);
+    bool del(const std::string& key);
     int size() const;
 };
 
