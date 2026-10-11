@@ -1,6 +1,7 @@
 #include "LiteRedis.h"
 #include <thread>
 #include <vector>
+#include <chrono> // Time aur sleep functionality ke liye
 
 void simulateClientReader(LiteRedis& db, int id) {
     std::string res = db.peek("shared_config");
@@ -27,16 +28,30 @@ int main() {
     for (auto& t : threads) {
         t.join();
     }
-
-    std::cout << "\nAll 10 concurrent threads finished with ZERO race conditions!\n";
-
+    
     std::cout << "\n--- Testing LRU get() and del() Operations ---\n";
     db.put("temp_key", "Temporary_Data");
     std::cout << "Fetching temp_key: " << db.get("temp_key") << "\n";
     db.del("temp_key");
     std::cout << "Fetching after del: " << db.get("temp_key") << "\n";
 
-    std::cout << "Checking if user:2 exists: " << (db.exists("user:2") ? "Yes" : "No") << "\n";
+    // --- NAYA TTL TEST BLOCK ---
+    std::cout << "\n--- Testing TTL (Time-To-Live) Feature ---\n";
+    
+    // 2 seconds ke TTL ke sath data daalo
+    db.put("session_token", "abc123xyz", 2); 
+    
+    // Turant fetch karke dekho (Milna chahiye)
+    std::cout << "Fetching immediately: " << db.get("session_token") << "\n";
+    
+    std::cout << "Waiting for 3 seconds...\n";
+    // Program ko 3 seconds ke liye rok do
+    std::this_thread::sleep_for(std::chrono::seconds(3)); 
+    
+    // 3 seconds baad fetch karke dekho (Expire ho jana chahiye)
+    std::cout << "Fetching after 3 seconds: " << db.get("session_token") << "\n";
+
     db.printStats();
+    
     return 0;
 }
