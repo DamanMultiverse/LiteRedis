@@ -1,6 +1,7 @@
 #ifndef LITEREDIS_H
 #define LITEREDIS_H
 
+#include "Config.h"
 #include <iostream>
 #include <unordered_map>
 #include <list>
@@ -30,7 +31,7 @@ private:
     std::string dump_file; 
 
 public:
-    explicit LiteRedis(int cap, std::string filename = "dump.rdb");
+    explicit LiteRedis(int cap = Config::MAX_CACHE_CAPACITY, std::string filename = Config::RDB_FILENAME);
     
     std::string peek(const std::string& key);
     std::string get(const std::string& key);
@@ -41,7 +42,6 @@ public:
     int size() const;
     void printStats() const;
 
-    // Data Persistence Methods
     void saveToDisk(); 
     void loadFromDisk(); 
 };
