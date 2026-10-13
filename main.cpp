@@ -1,5 +1,5 @@
 #include "LiteRedis.h"
-#include "Logger.h" // Included New Logger
+#include "Logger.h"
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
@@ -74,6 +74,9 @@ void handleClient(int client_socket, LiteRedis& db) {
 }
 
 int main() {
+    // Initialize file-based logging mechanism
+    Logger::init("server.log");
+
     LiteRedis db(100);
     int server_fd, new_socket;
     struct sockaddr_in address;
