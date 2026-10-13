@@ -1,3 +1,4 @@
 .git
 LiteRedis
 dump.rdb
+server.log

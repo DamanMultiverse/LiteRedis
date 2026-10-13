@@ -1,4 +1,4 @@
-# Compiled binaries
 LiteRedis
-*.out
-*.exe
+*.o
+dump.rdb
+server.log
