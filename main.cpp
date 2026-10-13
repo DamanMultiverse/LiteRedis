@@ -1,4 +1,5 @@
 #include "LiteRedis.h"
+#include "Logger.h" // Included New Logger
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
@@ -68,7 +69,7 @@ void handleClient(int client_socket, LiteRedis& db) {
         send(client_socket, response.c_str(), response.length(), 0);
     }
     
-    std::cout << "[SERVER] Client disconnected.\n";
+    Logger::log(LogLevel::INFO, "Client disconnected.");
     close(client_socket);
 }
 
@@ -80,10 +81,12 @@ int main() {
     int addrlen = sizeof(address);
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("Socket failed"); exit(EXIT_FAILURE);
+        Logger::log(LogLevel::ERROR, "Socket creation failed"); 
+        exit(EXIT_FAILURE);
     }
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        perror("setsockopt failed"); exit(EXIT_FAILURE);
+        Logger::log(LogLevel::ERROR, "Socket configuration failed (setsockopt)"); 
+        exit(EXIT_FAILURE);
     }
 
     address.sin_family = AF_INET;
@@ -91,24 +94,25 @@ int main() {
     address.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("Bind failed"); exit(EXIT_FAILURE);
+        Logger::log(LogLevel::ERROR, "Socket bind failed"); 
+        exit(EXIT_FAILURE);
     }
 
     if (listen(server_fd, 10) < 0) {
-        perror("Listen failed"); exit(EXIT_FAILURE);
+        Logger::log(LogLevel::ERROR, "Socket listen failed"); 
+        exit(EXIT_FAILURE);
     }
 
-    std::cout << "🚀 LiteRedis Server Started!\n";
-    std::cout << "📡 Listening on PORT " << PORT << "...\n";
-    std::cout << "------------------------------------------------\n";
+    Logger::log(LogLevel::INFO, "LiteRedis Server Started!");
+    Logger::log(LogLevel::INFO, "Listening on PORT " + std::to_string(PORT) + "...");
 
     while (true) {
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-            perror("Accept failed"); continue;
+            Logger::log(LogLevel::ERROR, "Client accept failed"); 
+            continue;
         }
-        std::cout << "[SERVER] New client connected!\n";
+        Logger::log(LogLevel::INFO, "New client connected!");
         
-        // Dispatch new thread for concurrent client handling
         std::thread(handleClient, new_socket, std::ref(db)).detach();
     }
     
