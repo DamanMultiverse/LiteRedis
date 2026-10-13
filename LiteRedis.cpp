@@ -1,6 +1,8 @@
 #include "LiteRedis.h"
+#include "Logger.h"
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 LiteRedis::LiteRedis(int cap, std::string filename) : capacity(cap), dump_file(filename) {
     loadFromDisk();
@@ -10,7 +12,7 @@ void LiteRedis::saveToDisk() {
     std::shared_lock<std::shared_mutex> lock(rw_lock);
     std::ofstream out(dump_file, std::ios::trunc); 
     if (!out.is_open()) {
-        std::cerr << "[ERROR] Could not open RDB file for writing!\n";
+        Logger::log(LogLevel::ERROR, "Could not open RDB file for writing: " + dump_file);
         return;
     }
     
@@ -30,13 +32,13 @@ void LiteRedis::saveToDisk() {
     }
     
     out.close();
-    std::cout << "[PERSISTENCE] " << saved_count << " keys saved to disk (" << dump_file << ").\n";
+    Logger::log(LogLevel::INFO, "Snapshot saved: " + std::to_string(saved_count) + " keys persisted to " + dump_file);
 }
 
 void LiteRedis::loadFromDisk() {
     std::ifstream in(dump_file);
     if (!in.is_open()) {
-        std::cout << "[PERSISTENCE] No existing RDB file found. Starting fresh.\n";
+        Logger::log(LogLevel::INFO, "No existing RDB file found. Initializing fresh database.");
         return;
     }
     
@@ -50,7 +52,7 @@ void LiteRedis::loadFromDisk() {
     }
     
     in.close();
-    std::cout << "[PERSISTENCE] " << loaded_count << " keys loaded from disk (" << dump_file << ").\n";
+    Logger::log(LogLevel::INFO, "Snapshot loaded: " + std::to_string(loaded_count) + " keys restored from " + dump_file);
 }
 
 std::string LiteRedis::peek(const std::string& key) {
@@ -103,7 +105,7 @@ void LiteRedis::put(const std::string& key, const std::string& value, int ttl_se
     
     items.push_front({key, value, expiry_time});
     cache[key] = items.begin();
-    std::cout << "[WRITER] Inserted: " << key << " => " << value << "\n";
+    Logger::log(LogLevel::INFO, "Inserted key: " + key);
 }
 
 bool LiteRedis::del(const std::string& key) {
@@ -112,7 +114,7 @@ bool LiteRedis::del(const std::string& key) {
     if (it == cache.end()) return false;
     items.erase(it->second);
     cache.erase(it);
-    std::cout << "[DEL] Removed key: " << key << "\n";
+    Logger::log(LogLevel::INFO, "Deleted key: " + key);
     return true;
 }
 
@@ -130,6 +132,7 @@ void LiteRedis::clear() {
     std::unique_lock<std::shared_mutex> lock(rw_lock);
     items.clear(); cache.clear();
     hits = 0; misses = 0;
+    Logger::log(LogLevel::INFO, "Database cleared.");
 }
 
 int LiteRedis::size() const {
@@ -141,7 +144,9 @@ void LiteRedis::printStats() const {
     int h = hits.load(), m = misses.load(), total = h + m;
     double hit_rate = (total > 0) ? (static_cast<double>(h) / total) * 100.0 : 0.0;
 
-    std::cout << "\n========= LiteRedis Stats =========\n";
-    std::cout << "Size : " << items.size() << " / " << capacity << " | Hit Ratio: " << std::fixed << std::setprecision(2) << hit_rate << "%\n";
-    std::cout << "=====================================\n";
+    std::stringstream ss;
+    ss << "Stats - Size: " << items.size() << "/" << capacity 
+       << " | Hit Ratio: " << std::fixed << std::setprecision(2) << hit_rate << "%";
+    
+    Logger::log(LogLevel::INFO, ss.str());
 }
