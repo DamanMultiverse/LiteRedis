@@ -14,7 +14,6 @@
 
 void handleClient(int client_socket, LiteRedis& db) {
     char buffer[1024] = {0};
-    // UPDATE: Welcome message mein SAVE command add kiya
     std::string welcome = "🚀 Connected to LiteRedis. Commands: PING, SET <k> <v> [ttl], GET <k>, DEL <k>, SAVE, EXIT\n";
     send(client_socket, welcome.c_str(), welcome.length(), 0);
 
@@ -53,7 +52,6 @@ void handleClient(int client_socket, LiteRedis& db) {
             bool deleted = db.del(tokens[1]);
             response = deleted ? ":1\n" : ":0\n"; 
         }
-        // NAYA COMMAND: SAVE 
         else if (cmd == "SAVE") {
             db.saveToDisk();
             response = "+OK (Snapshot saved to disk)\n";
@@ -110,6 +108,7 @@ int main() {
         }
         std::cout << "[SERVER] New client connected!\n";
         
+        // Dispatch new thread for concurrent client handling
         std::thread(handleClient, new_socket, std::ref(db)).detach();
     }
     

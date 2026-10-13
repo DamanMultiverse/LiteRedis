@@ -2,14 +2,13 @@
 #include <iomanip>
 #include <iostream>
 
-// UPDATE (Commit 21): Constructor ab dump_file ka naam lega aur start hote hi disk se data load karega
 LiteRedis::LiteRedis(int cap, std::string filename) : capacity(cap), dump_file(filename) {
     loadFromDisk();
 }
 
 void LiteRedis::saveToDisk() {
     std::shared_lock<std::shared_mutex> lock(rw_lock);
-    std::ofstream out(dump_file, std::ios::trunc); // trunc matlab purani file ko overwrite karo
+    std::ofstream out(dump_file, std::ios::trunc); 
     if (!out.is_open()) {
         std::cerr << "[ERROR] Could not open RDB file for writing!\n";
         return;
@@ -18,11 +17,9 @@ void LiteRedis::saveToDisk() {
     int saved_count = 0;
     auto now = std::chrono::steady_clock::now();
     
-    // File mein format rakhenge: key value remaining_ttl
     for (const auto& item : items) {
         long long ttl_remaining = 0;
         
-        // Agar key expire ho chuki hai, toh usko save hi mat karo (Disk space bachao)
         if (item.expiry != std::chrono::time_point<std::chrono::steady_clock>::min()) {
             if (now > item.expiry) continue; 
             ttl_remaining = std::chrono::duration_cast<std::chrono::seconds>(item.expiry - now).count();
@@ -47,7 +44,6 @@ void LiteRedis::loadFromDisk() {
     long long ttl;
     int loaded_count = 0;
     
-    // File se read karo aur cache mein wapas put() karte jao
     while (in >> k >> v >> ttl) {
         put(k, v, ttl);
         loaded_count++;

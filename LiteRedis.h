@@ -9,7 +9,7 @@
 #include <string>
 #include <atomic>
 #include <chrono>
-#include <fstream> // Naya header File I/O (Disk Persistence) ke liye
+#include <fstream> 
 
 struct CacheNode {
     std::string key;
@@ -27,11 +27,9 @@ private:
     mutable std::atomic<int> hits{0};
     mutable std::atomic<int> misses{0};
     
-    // NAYA: Hard drive par kis file mein data save hoga uska naam
     std::string dump_file; 
 
 public:
-    // UPDATE: Constructor ab ek optional filename lega (default: dump.rdb)
     explicit LiteRedis(int cap, std::string filename = "dump.rdb");
     
     std::string peek(const std::string& key);
@@ -43,9 +41,9 @@ public:
     int size() const;
     void printStats() const;
 
-    // --- NAYE FUNCTIONS: Data Persistence ---
-    void saveToDisk(); // RAM ka data Hard Drive par save karne ke liye
-    void loadFromDisk(); // Hard Drive ka data wapas RAM mein laane ke liye
+    // Data Persistence Methods
+    void saveToDisk(); 
+    void loadFromDisk(); 
 };
 
 #endif // LITEREDIS_H
