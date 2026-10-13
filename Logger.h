@@ -3,8 +3,8 @@
 
 #include <string>
 #include <mutex>
+#include <fstream> 
 
-// Log levels define karne ke liye enum
 enum class LogLevel {
     INFO,
     WARNING,
@@ -13,12 +13,13 @@ enum class LogLevel {
 
 class Logger {
 private:
-    // Static mutex taaki poore project mein ek hi lock share ho
     static std::mutex log_mutex;
+    static std::ofstream log_file; 
 
 public:
-    // Static function taaki bina object banaye Logger::log() call kar sakein
+    static void init(const std::string& filename = "server.log");
     static void log(LogLevel level, const std::string& message);
+    static void close();
 };
 
 #endif // LOGGER_H
