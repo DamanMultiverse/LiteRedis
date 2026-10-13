@@ -12,27 +12,22 @@
 
 #define PORT 6380
 
-// Function jo har naye client ke liye alag thread mein chalega
 void handleClient(int client_socket, LiteRedis& db) {
     char buffer[1024] = {0};
-    std::string welcome = "🚀 Connected to LiteRedis. Commands: PING, SET <k> <v> [ttl], GET <k>, DEL <k>, EXIT\n";
+    // UPDATE: Welcome message mein SAVE command add kiya
+    std::string welcome = "🚀 Connected to LiteRedis. Commands: PING, SET <k> <v> [ttl], GET <k>, DEL <k>, SAVE, EXIT\n";
     send(client_socket, welcome.c_str(), welcome.length(), 0);
 
-    // Infinite loop lagatar client se messages sunne ke liye
     while (true) {
         memset(buffer, 0, sizeof(buffer));
         int bytes_read = read(client_socket, buffer, 1024);
-        
-        // Agar client disconnect ho jaye (Ctrl+C daba de)
         if (bytes_read <= 0) break; 
 
-        // Client ka message string mein convert karo
         std::string command(buffer);
         std::istringstream iss(command);
         std::vector<std::string> tokens;
         std::string token;
         
-        // Message ko spaces se tod kar (tokenize) array mein daalo
         while (iss >> token) {
             tokens.push_back(token);
         }
@@ -42,7 +37,6 @@ void handleClient(int client_socket, LiteRedis& db) {
         std::string cmd = tokens[0];
         std::string response = "";
 
-        // COMMAND PARSER LOGIC
         if (cmd == "PING") {
             response = "+PONG\n";
         } 
@@ -53,23 +47,26 @@ void handleClient(int client_socket, LiteRedis& db) {
         } 
         else if (cmd == "GET" && tokens.size() == 2) {
             std::string res = db.get(tokens[1]);
-            // Redis ke standard format mein response bhej rahe hain
             response = "$" + std::to_string(res.length()) + "\r\n" + res + "\r\n";
         } 
         else if (cmd == "DEL" && tokens.size() == 2) {
             bool deleted = db.del(tokens[1]);
-            response = deleted ? ":1\n" : ":0\n"; // 1 matlab delete hua, 0 matlab not found
+            response = deleted ? ":1\n" : ":0\n"; 
+        }
+        // NAYA COMMAND: SAVE 
+        else if (cmd == "SAVE") {
+            db.saveToDisk();
+            response = "+OK (Snapshot saved to disk)\n";
         }
         else if (cmd == "EXIT" || cmd == "QUIT") {
             response = "Bye!\n";
             send(client_socket, response.c_str(), response.length(), 0);
-            break; // Loop tod do aur client ko disconnect kar do
+            break; 
         }
         else {
             response = "-ERR Unknown command or wrong arguments\n";
         }
 
-        // Output wapas client ko bhej do
         send(client_socket, response.c_str(), response.length(), 0);
     }
     
@@ -99,7 +96,6 @@ int main() {
         perror("Bind failed"); exit(EXIT_FAILURE);
     }
 
-    // 10 clients ki waiting queue rakhi hai
     if (listen(server_fd, 10) < 0) {
         perror("Listen failed"); exit(EXIT_FAILURE);
     }
@@ -114,7 +110,6 @@ int main() {
         }
         std::cout << "[SERVER] New client connected!\n";
         
-        // ASLI SDE JAADU: Har client ko ek alag thread mein handle karo taaki main loop na ruke
         std::thread(handleClient, new_socket, std::ref(db)).detach();
     }
     
