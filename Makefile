@@ -1,12 +1,20 @@
+# Compiler settings
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -pthread
-TARGET = LiteRedis
-SRCS = main.cpp LiteRedis.cpp
 
+# Project files (NAYA: Logger.cpp add kiya)
+SRCS = main.cpp LiteRedis.cpp Logger.cpp
+OBJS = $(SRCS:.cpp=.o)
+TARGET = LiteRedis
+
+# Build rules
 all: $(TARGET)
 
-$(TARGET): $(SRCS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET)
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(OBJS) $(TARGET)
