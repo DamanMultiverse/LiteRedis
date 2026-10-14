@@ -2,8 +2,8 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -pthread
 
-# Project files (NAYA: Logger.cpp add kiya)
-SRCS = main.cpp LiteRedis.cpp Logger.cpp
+# Source files (Added TcpServer.cpp)
+SRCS = main.cpp LiteRedis.cpp Logger.cpp TcpServer.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = LiteRedis
 
