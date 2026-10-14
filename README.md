@@ -1,4 +1,10 @@
+
 # 🚀 LiteRedis: Multithreaded In-Memory Key-Value Store
+
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![C++17](https://img.shields.io/badge/C++-17-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
 A high-performance, production-grade, multithreaded in-memory key-value database built from scratch in C++17. LiteRedis features a custom TCP socket server, thread-safe concurrent client handling, O(1) LRU eviction, lazy TTL expiration, and RDB-style disk persistence.
 
