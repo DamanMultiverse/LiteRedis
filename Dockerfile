@@ -1,20 +1,16 @@
-# Base image with required build environment
-FROM ubuntu:22.04
-
-# Install build dependencies (C++ compiler and Make)
+# Stage 1: Build Environment
+FROM ubuntu:22.04 AS builder
 RUN apt-get update && apt-get install -y g++ make
-
-# Set the working directory inside the container
 WORKDIR /app
-
-# Copy source code and build files to the container
 COPY . .
-
-# Compile the application using the Makefile
+# Compile the application
 RUN make
 
-# Expose the default TCP port for LiteRedis client connections
-EXPOSE 6380
+# Stage 2: Lightweight Production Environment
+FROM ubuntu:22.04
+WORKDIR /app
+# Copy ONLY the compiled binary from the builder stage
+COPY --from=builder /app/LiteRedis .
 
-# Start the LiteRedis server on container startup
+EXPOSE 6380
 CMD ["./LiteRedis"]
