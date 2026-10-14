@@ -42,8 +42,10 @@ int main() {
     signal(SIGINT, handleSignal);  
     signal(SIGTERM, handleSignal); 
 
+    Logger::log(LogLevel::INFO, "LiteRedis Server v" + Config::VERSION + " Started!");
+
     // Start the server (this call blocks and handles client connections)
     server.start();
-
+    
     return 0;
 }
