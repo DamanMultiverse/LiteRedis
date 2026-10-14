@@ -31,19 +31,21 @@ private:
     std::string dump_file; 
 
 public:
-    explicit LiteRedis(int cap = Config::MAX_CACHE_CAPACITY, std::string filename = Config::RDB_FILENAME);
+   explicit LiteRedis(int cap = Config::MAX_CACHE_CAPACITY, std::string filename = Config::RDB_FILENAME);
     
-    std::string peek(const std::string& key);
-    std::string get(const std::string& key);
+    // Modern C++17 attributes to prevent unused return values
+    [[nodiscard]] std::string peek(const std::string& key);
+    [[nodiscard]] std::string get(const std::string& key);
+    [[nodiscard]] bool exists(const std::string& key);
+    [[nodiscard]] int size() const;
+    
     void put(const std::string& key, const std::string& value, int ttl_seconds = 0);
     bool del(const std::string& key);
-    bool exists(const std::string& key);
     void clear();
-    int size() const;
     void printStats() const;
 
     void saveToDisk(); 
-    void loadFromDisk(); 
+    void loadFromDisk();
 };
 
 #endif // LITEREDIS_H
