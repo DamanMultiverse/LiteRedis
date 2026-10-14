@@ -1,8 +1,9 @@
 # Compiler settings
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -pthread
+# Added -O3 flag for maximum production performance optimization
+CXXFLAGS = -std=c++17 -Wall -Wextra -pthread -O3
 
-# Source files (Added TcpServer.cpp)
+# Source files
 SRCS = main.cpp LiteRedis.cpp Logger.cpp TcpServer.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = LiteRedis
